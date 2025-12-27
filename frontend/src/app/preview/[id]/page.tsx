@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Header from '@/components/Header';
+import AuthModal from '@/components/auth/AuthModal';
+import { useAuth } from '@/context/AuthContext';
 
 const content = {
     en: {
@@ -67,8 +69,11 @@ export default function PreviewPage() {
     const [publishing, setPublishing] = useState(false);
     const [publishData, setPublishData] = useState<PublishData | null>(null);
     const [showPublishModal, setShowPublishModal] = useState(false);
+    const [showAuthModal, setShowAuthModal] = useState(false);
     const [copied, setCopied] = useState(false);
     const [error, setError] = useState('');
+
+    const { isAuthenticated, getAccessToken } = useAuth();
 
     const t = content[language];
 
@@ -131,11 +136,23 @@ export default function PreviewPage() {
     };
 
     const handlePublish = async () => {
+        // Check if user is authenticated
+        if (!isAuthenticated) {
+            setShowAuthModal(true);
+            return;
+        }
+
         setPublishing(true);
+        setError('');
+
         try {
+            const token = getAccessToken();
             const endpoint = publishData ? `/api/republish/${id}` : `/api/publish/${id}`;
             const response = await fetch(endpoint, {
-                method: 'POST'
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             });
             const data = await response.json();
 
@@ -146,6 +163,9 @@ export default function PreviewPage() {
                     published_at: data.published_at
                 });
                 setShowPublishModal(true);
+            } else if (response.status === 401) {
+                // Token expired or invalid, show auth modal
+                setShowAuthModal(true);
             } else {
                 setError(data.detail || 'Failed to publish');
             }
@@ -319,9 +339,23 @@ export default function PreviewPage() {
                                 </div>
                             </div>
                         )}
+
+                        {/* Auth Modal for Publish */}
+                        {showAuthModal && (
+                            <AuthModal
+                                language={language}
+                                onClose={() => setShowAuthModal(false)}
+                                title={language === 'en' ? 'Login to Publish' : 'Publish करने के लिए Login करें'}
+                                subtitle={language === 'en'
+                                    ? 'Sign in to publish your website and make it live'
+                                    : 'अपनी website publish और live करने के लिए sign in करें'
+                                }
+                            />
+                        )}
                     </>
                 )}
             </main>
         </div>
     );
 }
+

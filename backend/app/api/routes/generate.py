@@ -7,12 +7,14 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
 
 from app.ai import parse_business_description, select_layout
 from app.website import build_website
 from app.core.config import get_settings
+from app.core.rate_limit import check_rate_limit, upstash_rate_limiter
+from app.core.auth_middleware import require_auth, AuthUser
 
 router = APIRouter()
 
@@ -119,7 +121,10 @@ class AsyncGenerateResponse(BaseModel):
 
 
 @router.post("/generate/async", response_model=AsyncGenerateResponse)
-async def generate_website_async(request: GenerateRequest):
+async def generate_website_async(
+    request: GenerateRequest,
+    user: AuthUser = Depends(require_auth)
+):
     """
     Generate a website asynchronously.
     
@@ -127,6 +132,23 @@ async def generate_website_async(request: GenerateRequest):
     Poll /api/tasks/{task_id} to check status.
     """
     from app.workers.tasks import generate_website_task
+    
+    # Check rate limit before enqueueing task
+    is_allowed, message, remaining = check_rate_limit(user.user_id, "generate")
+    if not is_allowed:
+        # Track abuse signal
+        upstash_rate_limiter.track_abuse_signal(user.user_id, "limit_violations")
+        raise HTTPException(
+            status_code=429,
+            detail=message
+        )
+    
+    # Check if user is blocked due to abuse
+    if upstash_rate_limiter.is_user_blocked(user.user_id):
+        raise HTTPException(
+            status_code=429,
+            detail="Too many violations. Please try again later."
+        )
     
     # Queue the task
     task = generate_website_task.delay(
@@ -136,7 +158,7 @@ async def generate_website_async(request: GenerateRequest):
     
     return AsyncGenerateResponse(
         task_id=task.id,
-        message="Website generation started. Poll /api/tasks/{task_id} for status."
+        message=f"Website generation started. {remaining} generations remaining this hour."
     )
 
 

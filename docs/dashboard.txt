@@ -1,0 +1,362 @@
+# 🧭 USER DASHBOARD — COMPLETE DESIGN & SYSTEM
+
+![Image](https://miro.medium.com/v2/resize%3Afit%3A1400/1%2AuEjPgFb-d0uyJAu1FQmKwg.png)
+
+![Image](https://s3.amazonaws.com/creativetim_bucket/products/450/original/opt_sd_free_thumbnail.jpg?1617715816=)
+
+![Image](https://cdn.prod.website-files.com/630337db6e4dd644cb1f5d81/63ff3fd3e1888406a65650b5_screely-1677672370157.png)
+
+![Image](https://sketchelements.com/wp-content/uploads/2019/11/credit-dtatement-dashboard.png)
+
+---
+
+## 1️⃣ Dashboard Philosophy (IMPORTANT)
+
+### Mental model for user:
+
+> “Yeh meri website ka control room hai.”
+
+Not:
+
+* Developer panel
+* Admin panel
+* SaaS analytics
+
+### Core rules:
+
+* ✅ One primary action per screen
+* ✅ No technical terms
+* ✅ Everything editable via **text or voice**
+* ❌ No settings overload
+
+---
+
+# 🧩 DASHBOARD INFORMATION ARCHITECTURE
+
+```
+Dashboard
+├── Home (Overview)
+├── My Websites
+│   ├── Create New Website
+│   ├── Existing Websites
+│   └── Website Editor
+├── Credits & Usage
+├── Domain & Publishing
+├── Settings
+├── Help & Support
+└── Billing & Plans
+```
+
+---
+
+## 2️⃣ DASHBOARD HOME (Overview Screen)
+
+### Purpose
+
+Give **confidence + clarity** in 5 seconds.
+
+### What user sees:
+
+* Website status (Live / Draft)
+* Credits remaining
+* Main action button
+* Last activity
+
+### UI Content
+
+**Top Card**
+
+> 🟢 Website Live
+> yourbusiness.yourplatform.in
+
+**Credits Card**
+
+> 🎯 Credits left: 120
+> Used for creating & editing websites
+
+**Primary CTA**
+🟢 **Create / Edit Website**
+
+---
+
+## 3️⃣ MY WEBSITES (Core Section)
+
+### A. Create New Website
+
+**Flow**
+
+* Button: “Create New Website”
+* Options:
+
+  * Text
+  * Voice
+  * Redesign existing website
+
+**What happens**
+
+* Triggers Celery task
+* Redirects to “Processing” screen
+
+---
+
+### B. Existing Websites List
+
+For users with multiple sites (future-proof).
+
+Each website card:
+
+* Website name
+* Status (Live / Draft)
+* Domain
+* Buttons:
+
+  * Edit
+  * Preview
+  * Settings
+
+Keep it **visual**, not tabular.
+
+---
+
+## 4️⃣ WEBSITE EDITOR (Non-Technical)
+
+![Image](https://cdn.dribbble.com/userupload/15473897/file/original-3469c80ef43bac4eabfa10c673e9a307.png?format=webp\&resize=400x300\&vertical=center)
+
+![Image](https://www.hostinger.com/my/tutorials/wp-content/uploads/sites/2/2023/09/Mobile-Editor_mobile-hostingerwebsitebuilder-websitestyles-scaled.webp)
+
+![Image](https://api.junia.ai/storage/v1/object/sign/user-generated-images/f2f98d5e-63c4-412b-92cd-f82429517add/unnamed%20%282%29.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJ1c2VyLWdlbmVyYXRlZC1pbWFnZXMvZjJmOThkNWUtNjNjNC00MTJiLTkyY2QtZjgyNDI5NTE3YWRkL3VubmFtZWQgKDIpLnBuZyIsImlhdCI6MTY5ODMwMjQ3MiwiZXhwIjoxODU1OTgyNDcyfQ.7-fFLKGGx--C3lmeIJ50u3iOruXj6K8nNHXzUqZgB0s)
+
+### Editor Rules
+
+* No drag & drop
+* No layers
+* No CSS
+
+### How editing works
+
+* Tap section → “Change text”
+* Speak or type
+* AI rewrites
+* Instant preview
+
+### Editable sections:
+
+* Business name
+* Services
+* About
+* Photos
+* Contact info
+* CTA button text
+
+---
+
+## 5️⃣ CREDITS & USAGE (YOU ASKED THIS)
+
+### Why credits?
+
+* Predictable AI cost
+* Simple for users
+
+### Credits used for:
+
+* Creating website
+* Editing sections
+* Redesign
+* Voice processing
+
+### UI
+
+> 🎯 Credits Remaining: 85
+> Used today: 10
+
+Button:
+🟢 **Buy More Credits**
+
+---
+
+## 6️⃣ DOMAIN & PUBLISHING SETTINGS
+
+This is where **trust breaks if done wrong**.
+
+### What users should see (NOT how it works):
+
+* Current domain
+* SSL status
+* Publish status
+
+### Domain options:
+
+* Free subdomain (default)
+* Custom domain (paid)
+
+### Domain Flow (Simplified UI)
+
+1. “Add my domain”
+2. Show **2 simple steps**
+3. “We’ll handle the rest”
+
+❌ No DNS jargon on UI
+✅ “Ask your domain provider to add this”
+
+---
+
+## 7️⃣ WEBSITE SETTINGS (Per Website)
+
+### Simple toggles only:
+
+* Website language
+* Contact number
+* WhatsApp button (ON/OFF)
+* Google Maps (ON/OFF)
+* Business hours
+
+Avoid:
+❌ SEO panels
+❌ Meta tags
+❌ Code injection
+
+AI handles SEO silently.
+
+---
+
+## 8️⃣ BILLING & PLANS
+
+![Image](https://www.aufaitux.com/wp-content/uploads/2025/02/asset-management-dashboard.jpg)
+
+![Image](https://mir-s3-cdn-cf.behance.net/projects/max_808/1824bf153969175.Y3JvcCwyMjQ0LDE3NTUsMCw2Ng.png)
+
+![Image](https://cdn.dribbble.com/userupload/14847123/file/original-f92d00d8c24187baf15339aa486425de.png)
+
+### Sections:
+
+* Current plan
+* Credits
+* Upgrade button
+* Payment history
+
+Language:
+
+> “Upgrade when your business grows.”
+
+No pressure.
+
+---
+
+## 9️⃣ HELP & SUPPORT (YOU PROBABLY FORGOT THIS)
+
+### MUST-HAVE:
+
+* WhatsApp support button
+* “Talk to us” CTA
+* Simple FAQ
+
+Local users trust **human support**.
+
+---
+
+## 🔟 NOTIFICATIONS & ACTIVITY (YOU DEFINITELY FORGOT THIS)
+
+### Examples:
+
+* “Your website is live 🎉”
+* “Credits running low”
+* “Website updated successfully”
+
+No analytics charts.
+Just **useful alerts**.
+
+---
+
+## 1️⃣1️⃣ BACKEND MODEL (IMPORTANT)
+
+### Core tables
+
+* User
+* Website
+* Domain
+* Credits
+* Tasks
+* Payments
+
+### Task Status
+
+Each action:
+
+* Creates Celery task
+* Stores status
+* Dashboard polls status
+
+---
+
+## 1️⃣2️⃣ DASHBOARD ↔ CELERY INTEGRATION
+
+| Action         | Celery Task           |
+| -------------- | --------------------- |
+| Create website | generate_website_task |
+| Edit website   | update_website_task   |
+| Voice input    | speech_to_text_task   |
+| Publish        | deploy_website_task   |
+| Redesign       | redesign_website_task |
+
+Dashboard = **task monitor**, not executor.
+
+---
+
+## 1️⃣3️⃣ MOBILE-FIRST DASHBOARD RULES
+
+* Bottom navigation (4 items max)
+* Large buttons
+* Minimal scrolling
+* No hover interactions
+
+Think **UPI app**, not SaaS admin.
+
+---
+
+## 1️⃣4️⃣ THINGS FOUNDERS OFTEN MISS (BUT YOU SHOULD ADD)
+
+✅ Website backup & restore
+✅ Auto-save drafts
+✅ Preview before publish
+✅ “Undo last change”
+✅ Website version history
+✅ Credits expiry clarity
+✅ Account deletion (trust signal)
+
+---
+
+## 1️⃣5️⃣ DASHBOARD COPY EXAMPLES
+
+Instead of:
+
+> “Deployment successful”
+
+Use:
+
+> “Your website is live 🎉”
+
+Instead of:
+
+> “Task failed”
+
+Use:
+
+> “We couldn’t finish this. Try again or contact us.”
+
+---
+
+## 1️⃣6️⃣ MVP DASHBOARD SCOPE (DON’T OVERBUILD)
+
+### MUST HAVE
+
+* Create website
+* Edit website
+* Credits
+* Publish
+* Domain
+
+### LATER
+
+* Analytics
+* Team access
+* Multiple admins

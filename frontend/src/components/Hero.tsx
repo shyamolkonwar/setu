@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import WaitlistForm from './WaitlistForm';
+import Link from 'next/link';
 
 interface HeroProps {
   language: 'en' | 'hi';
@@ -11,9 +10,8 @@ const content = {
   en: {
     headline: 'Build your business website using voice or text.',
     subheading: "No coding. No design. No hosting headaches.\nJust tell us about your business — we'll do the rest.",
-    cta: 'Get Early Access',
+    cta: 'Get Started',
     secondary: 'See how it works',
-    comingSoon: 'Coming Soon',
     badge: 'Built for local businesses',
     haveWebsite: 'Already have a website?',
     redesign: 'Redesign it \u2192'
@@ -21,9 +19,8 @@ const content = {
   hi: {
     headline: 'Voice या text से अपनी business website बनाएं।',
     subheading: "Coding नहीं। Design नहीं। Hosting की tension नहीं।\nबस अपने business के बारे में बताएं — बाकी हम कर देंगे।",
-    cta: 'Early Access पाएं',
+    cta: 'शुरू करें',
     secondary: 'देखें कैसे काम करता है',
-    comingSoon: 'जल्द आ रहा है',
     badge: 'Local businesses के लिए बना',
     haveWebsite: 'Website पहले से है?',
     redesign: 'Redesign करें →'
@@ -31,7 +28,6 @@ const content = {
 };
 
 export default function Hero({ language }: HeroProps) {
-  const [showForm, setShowForm] = useState(false);
   const t = content[language];
 
   return (
@@ -40,8 +36,6 @@ export default function Hero({ language }: HeroProps) {
         {/* Trust Badge */}
         <div className="hero-badge">
           <span className="badge-dot"></span>
-          <span>{t.comingSoon}</span>
-          <span className="badge-separator">•</span>
           <span>{t.badge}</span>
         </div>
 
@@ -62,12 +56,9 @@ export default function Hero({ language }: HeroProps) {
 
         {/* CTA Buttons */}
         <div className="hero-cta-container">
-          <button
-            onClick={() => setShowForm(true)}
-            className="btn-primary"
-          >
+          <Link href="/create" className="btn-primary">
             {t.cta}
-          </button>
+          </Link>
           <button
             onClick={() => {
               const featuresSection = document.getElementById('features-section');
@@ -86,14 +77,6 @@ export default function Hero({ language }: HeroProps) {
           <span className="redesign-text">{t.haveWebsite}</span>
           <a href="/redesign" className="redesign-link">{t.redesign}</a>
         </div>
-
-        {/* Waitlist Form Modal */}
-        {showForm && (
-          <WaitlistForm
-            language={language}
-            onClose={() => setShowForm(false)}
-          />
-        )}
 
         {/* Preview Illustration */}
         <div className="hero-preview">

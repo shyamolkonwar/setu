@@ -5,7 +5,7 @@ Handles website redesign from existing URLs.
 
 import os
 from datetime import datetime
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field, HttpUrl
 from typing import Literal
 
@@ -15,6 +15,8 @@ from app.ai import select_layout
 from app.website import build_website
 from app.api.routes.generate import save_website
 from app.core.config import get_settings
+from app.core.rate_limit import check_rate_limit, upstash_rate_limiter
+from app.core.auth_middleware import require_auth, AuthUser
 
 router = APIRouter()
 
@@ -105,7 +107,10 @@ async def scrape_for_redesign(request: ScrapeRequest):
 
 
 @router.post("/redesign/generate", response_model=RedesignResponse)
-async def generate_redesign(request: RedesignRequest):
+async def generate_redesign(
+    request: RedesignRequest,
+    user: AuthUser = Depends(require_auth)
+):
     """
     Generate a redesigned website from an existing URL.
     
@@ -116,6 +121,22 @@ async def generate_redesign(request: RedesignRequest):
     4. Generate website
     5. Store and return ID
     """
+    # Check rate limit (redesign is 1 per day - most expensive action)
+    is_allowed, message, remaining = check_rate_limit(user.user_id, "redesign")
+    if not is_allowed:
+        upstash_rate_limiter.track_abuse_signal(user.user_id, "limit_violations")
+        raise HTTPException(
+            status_code=429,
+            detail=message
+        )
+    
+    # Check if user is blocked
+    if upstash_rate_limiter.is_user_blocked(user.user_id):
+        raise HTTPException(
+            status_code=429,
+            detail="Too many violations. Please try again later."
+        )
+    
     settings = get_settings()
     
     # Validate URL

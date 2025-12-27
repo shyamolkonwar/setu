@@ -1,0 +1,249 @@
+**OAuth (Google) happens only between:**
+
+```
+Browser (Next.js) ↔ Supabase Auth ↔ Google
+```
+
+Your **Python backend only verifies Supabase JWTs**.
+
+---
+
+# Final Architecture (Clean Mental Model)
+
+```
+[ Next.js Frontend ]
+  ├── Google Login Button
+  ├── Supabase JS Client
+  ├── Receives Supabase Session (JWT)
+  └── Calls Python API with JWT
+
+[ Supabase Auth ]
+  ├── Handles Google OAuth
+  ├── Issues JWT (access_token)
+  └── Manages users, sessions
+
+[ Python Backend (FastAPI/Django) ]
+  ├── Verifies Supabase JWT
+  ├── Applies business logic
+  └── Talks to DB / services
+```
+
+---
+
+# Step-by-Step Implementation
+
+## 1️⃣ Supabase Setup (Once)
+
+You already did most of this, but recap:
+
+### Supabase Dashboard
+
+```
+Auth → Providers → Google → Enabled
+```
+
+Add:
+
+* Google **Client ID**
+* Google **Client Secret**
+* Callback URL already provided by Supabase
+
+✅ Nothing Python-related here.
+
+---
+
+## 2️⃣ Next.js (Frontend) — Google Login
+
+### Install Supabase client
+
+```bash
+npm install @supabase/supabase-js
+```
+
+### Create Supabase client (client-side)
+
+```ts
+// utils/supabase/client.ts
+import { createClient } from '@supabase/supabase-js'
+
+export const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
+```
+
+---
+
+### Trigger Google Login
+
+```ts
+const signInWithGoogle = async () => {
+  await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: 'http://localhost:3000/auth/callback'
+    }
+  })
+}
+```
+
+---
+
+## 3️⃣ Next.js OAuth Callback (PKCE Flow)
+
+Create:
+
+```
+app/auth/callback/route.ts
+```
+
+```ts
+import { NextResponse } from 'next/server'
+import { createClient } from '@/utils/supabase/server'
+
+export async function GET(request: Request) {
+  const { searchParams, origin } = new URL(request.url)
+  const code = searchParams.get('code')
+
+  if (code) {
+    const supabase = createClient()
+    await supabase.auth.exchangeCodeForSession(code)
+  }
+
+  return NextResponse.redirect(`${origin}/dashboard`)
+}
+```
+
+👉 **Now the user is authenticated**
+👉 Session is stored in **cookies (SSR-safe)**
+
+---
+
+## 4️⃣ Getting the JWT (Critical for Python)
+
+From Next.js (client or server):
+
+```ts
+const {
+  data: { session }
+} = await supabase.auth.getSession()
+
+const accessToken = session?.access_token
+```
+
+This `access_token` is a **Supabase JWT**, not Google’s token.
+
+---
+
+## 5️⃣ Calling Python Backend with JWT
+
+### Frontend → Python API
+
+```ts
+await fetch('https://api.yourapp.com/protected', {
+  headers: {
+    Authorization: `Bearer ${accessToken}`
+  }
+})
+```
+
+---
+
+## 6️⃣ Python Backend — Verify Supabase JWT
+
+### Install deps
+
+```bash
+pip install fastapi python-jose requests
+```
+
+---
+
+### JWT Verification (FastAPI Example)
+
+```python
+from fastapi import FastAPI, Depends, HTTPException
+from fastapi.security import HTTPBearer
+from jose import jwt
+import requests
+
+app = FastAPI()
+security = HTTPBearer()
+
+SUPABASE_PROJECT_ID = "your-project-id"
+JWKS_URL = f"https://{SUPABASE_PROJECT_ID}.supabase.co/auth/v1/.well-known/jwks.json"
+
+jwks = requests.get(JWKS_URL).json()
+
+def verify_jwt(token: str):
+    try:
+        return jwt.decode(
+            token,
+            jwks,
+            algorithms=["RS256"],
+            audience="authenticated"
+        )
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+@app.get("/protected")
+def protected_route(credentials=Depends(security)):
+    payload = verify_jwt(credentials.credentials)
+    return {
+        "user_id": payload["sub"],
+        "email": payload.get("email")
+    }
+```
+
+✅ Now your Python backend trusts Supabase Auth.
+
+---
+
+## 7️⃣ User Identity Flow (Very Important)
+
+| Layer    | Identity               |
+| -------- | ---------------------- |
+| Google   | Google account         |
+| Supabase | `auth.users.id` (UUID) |
+| JWT      | `sub` field            |
+| Python   | Trusts `sub`           |
+
+👉 **Always use `sub` (Supabase user id)**
+👉 Never trust frontend-provided user IDs
+
+---
+
+## 8️⃣ Access Google Tokens (Optional)
+
+If you need Google APIs (Drive, Gmail):
+
+### Frontend
+
+```ts
+const { data } = await supabase.auth.getSession()
+const googleAccessToken = data.session.provider_token
+```
+
+⚠️ Store securely if you send to backend.
+
+---
+
+## 9️⃣ What NOT to Do (Common Mistakes)
+
+❌ Don’t implement Google OAuth in Python
+❌ Don’t verify Google tokens in backend
+❌ Don’t store Google secrets in frontend
+❌ Don’t skip JWT verification
+
+---
+
+## 10️⃣ When This Architecture Is Perfect
+
+This setup is **ideal** for:
+
+* SaaS products
+* AI tools
+* Founder dashboards
+* Mobile + web apps
+* Multi-tenant systems
+* Your **AI website builder for local businesses**

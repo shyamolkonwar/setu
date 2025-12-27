@@ -1,385 +1,211 @@
-# 🧱 8-PHASE MVP BUILD PLAN
-
-*(Landing Page → Full Python Backend MVP)*
-
----
-
-## **PHASE 1 — Landing Page + Intent Capture (Week 1)**
-
-🎯 *Validate demand before heavy AI work*
-
-![Image](https://s3-alpha.figma.com/hub/file/3096915499/b32b1a92-d7d5-4995-92eb-9c68fbc97b95-cover.png)
-
-![Image](https://cdn.dribbble.com/userupload/45868078/file/5953fe331ddc1b8a9911f17bcd85afe8.jpg?resize=400x0)
-
-![Image](https://cdn.prod.website-files.com/5b5729421aca332c60585f78/63f5fa2090a26e49d14c3151_614a37a697aaeaacdc0664ff_coming-soon-landing-pages.png)
-
-### What You Build
-
-* Simple **mobile-first landing page**
-* Clear value proposition
-* Email / WhatsApp waitlist
-
-### Features
-
-* Hero: “Build your business website using voice or text”
-* CTA: “Get Early Access”
-* Language toggle (English / Hindi)
-* Trust cues (Coming Soon, Built for local businesses)
-
-### Tech
-
-* **Next.js**
-* Tailwind CSS
-* Form → backend API (FastAPI)
-
-### Backend (Python)
-
-* FastAPI endpoint:
-
-  ```
-  POST /waitlist
-  ```
-* Store leads in Supabase
-
-### Output
-
-✅ Deployed landing page
-✅ Real user interest
-✅ Zero AI cost
-
----
-
-## **PHASE 2 — Text → Website Generator (Week 2)**
-
-🎯 *Core value without voice complexity*
-
-![Image](https://www.datocms-assets.com/16499/1734278451-thumb-ai-ui-generators.png?auto=format)
-
-![Image](https://www.visily.ai/wp-content/uploads/2025/05/Feature-image-21-scaled-1200x675.jpg)
-
-![Image](https://saasinterface.com/wp-content/uploads/2023/07/sessions-2.png)
-
-### What You Build
-
-* Text input → website preview
-* Single industry (e.g., Clinic or Shop)
-
-### Features
-
-* Text box: “Describe your business”
-* Generate website
-* Preview (mobile + desktop)
-* Regenerate button
-
-### Backend Flow
-
-```
+PHASE 1 — Landing Page + Waitlist (Week 1)
+🎯 Demand validation, no auth yet
+What You Build
+Public landing page
+Early-access waitlist
+Frontend
+Next.js (App Router)
+Tailwind CSS
+Mobile-first
+Backend (Python)
+FastAPI
+Endpoint:
+POST /waitlist
+Store leads in Supabase (public table)
+Supabase Usage
+waitlist table
+No auth required
+Simple insert only
+Cloudflare Usage
+❌ Not yet
+Outcome
+✅ Public presence
+✅ Real leads
+✅ Zero infra complexity
+PHASE 2 — Authentication (Supabase Google Login) (Week 2)
+🎯 Foundation for dashboard & ownership
+What You Build
+Google Login only (no email/password yet)
+Auth-protected dashboard shell
+Frontend
+Supabase Auth (Google OAuth)
+Login → Redirect to /dashboard
+Backend
+JWT verification middleware
+Read Supabase user from token
+Supabase Usage
+Supabase Auth (Google provider)
+users table (linked via auth.users.id)
+Row Level Security (RLS) enabled
+Cloudflare Usage
+❌ Not yet
+Outcome
+✅ Real user accounts
+✅ Secure identity
+✅ Ownership model ready
+PHASE 3 — Text → Website Generation (Draft Mode) (Week 3)
+🎯 First real “wow” moment
+What You Build
+Text prompt → website preview
+Single industry
+Draft websites only (not live)
+Backend Flow
 Text Input
- → Business Understanding
- → Layout Selection
- → Static Website Generation
-```
-
-### Python Modules
-
-* business_parser.py
-* layout_selector.py
-* website_builder.py
-
-### Output
-
-✅ First “wow moment”
-✅ Real websites generated
-
----
-
-## **PHASE 3 — Publish Engine (Week 3)**
-
-🎯 *From preview → live website*
-
-![Image](https://cdn.prod.website-files.com/687e8d1b96312cc631cafec7/68c48db01269b4f9c5f195ce_660ed3fbf48d6de2ec1271ba_BlogInline_3_3840x2160.jpeg)
-
-![Image](https://images.contentstack.io/v3/assets/blt23180bf2502c7444/blt7a8bd01e775813a3/5f3d05be6e9660261c55bada/Static_Website_-_Detailed_Architecture_.jpeg?disposition=download)
-
-![Image](https://miro.medium.com/v2/resize%3Afit%3A1200/1%2A2SQ_RsYLY-zO3JuB_p_SHA.gif)
-
-### What You Build
-
-* 1-click publish
-* Auto subdomain
-* SSL enabled
-
-### Features
-
-* “Publish Website” button
-* Live URL shown
-* Edit → Republish
-
-### Backend Flow
-
-```
-Static Files
- → Upload to Hosting
- → Assign Subdomain
- → Return Live URL
-```
-
-### Tech
-
-* Cloudflare Pages / Vercel
-* Cloudflare R2 (assets)
-
-### Output
-
+ → Celery Task
+ → Business Parser
+ → Layout Selector
+ → Static Website Builder
+ → Save Draft
+Python
+FastAPI + Celery + Redis
+AI modules
+Store generated HTML locally or temp storage
+Supabase Usage
+websites table:
+status = draft
+owner_id
+business_json
+tasks table (task_id, status)
+Cloudflare Usage
+❌ Not yet (NO publishing)
+Outcome
+✅ Website previews
+✅ AI pipeline validated
+✅ No infra risk yet
+PHASE 4 — Publishing Engine (Cloudflare Pages + R2) (Week 4)
+🎯 Draft → Live website
+What You Build
+One-click “Publish”
+Auto subdomain
+SSL enabled
+Backend Flow
+Draft Website
+ → Celery Publish Task
+ → Upload static files
+ → Cloudflare Pages
+ → Return live URL
+Cloudflare Usage
+Cloudflare Pages → host websites
+Cloudflare R2 → store assets
+Auto subdomain:
+<slug>.yourplatform.com
+Supabase Usage
+Update websites.status = live
+Store live_url, published_at
+Outcome
 ✅ End-to-end product
-✅ Users can share links
-
----
-
-## **PHASE 4 — Voice Input (Week 4)**
-
-🎯 *Mass adoption feature*
-
-![Image](https://cdn.dribbble.com/userupload/38418969/file/original-da1b2656f0c7a4aaa871aa7cfed97d19.png?resize=400x0)
-
-![Image](https://pcf.gallery/assets/images/pcf-speech-to-text.png)
-
-![Image](https://luixaviles.com/assets/images/posts/web-speech/web-speech-api-no-text.jpg)
-
-### What You Build
-
-* Voice recording (mobile-first)
-* Regional language support
-
-### Backend Flow
-
-```
-Audio
+✅ Real live websites
+✅ Shareable URLs
+PHASE 5 — Voice Input + Regional Language (Week 5)
+🎯 Bharat unlock
+What You Build
+Voice recording (mobile)
+Hindi + English (start with 1 regional)
+Backend Flow
+Audio Upload
+ → Celery Task
  → Whisper
- → Clean Text
- → Same Pipeline as Phase 2
-```
-
-### Python Additions
-
-* speech_to_text.py
-* language_normalizer.py
-
-### Output
-
+ → Normalization
+ → Same Pipeline as Phase 3
+Supabase Usage
+Store audio metadata (optional)
+Usage tracking (credits)
+Cloudflare Usage
+Optional: store audio blobs in R2
+Outcome
 ✅ Non-English users onboard
-✅ Strong Bharat differentiation
-
----
-
-## **PHASE 5 — Website Editing + Redesign (Week 5)**
-
-🎯 *Retention + value addition*
-
-![Image](https://assets.justinmind.com/wp-content/uploads/2018/11/rev-website-redesign-Justinmind.png)
-
-![Image](https://www.wptavern.com/wp-content/uploads/2013/08/ContentEditingProposal.png)
-
-![Image](https://cdn.prod.website-files.com/66ab4f6675d4c65b05c9fbb2/6743875d974e7a3d35f28fd0_6482f19708544dddc80d08e5_Role%2520of%2520AI%2520in%2520website%2520design.png)
-
-### What You Build
-
-#### A. Edit via Text / Voice
-
-* Tap section → speak → update
-
-#### B. Redesign Existing Website
-
-* Paste URL
-* Select style
-* Generate new version
-
-### Backend Flow (Redesign)
-
-```
+✅ Massive differentiation
+PHASE 6 — Website Editing + Redesign (Week 6)
+🎯 Retention + monetizable value
+What You Build
+A. Edit Website
+Tap section → speak/type → regenerate
+Auto-save drafts
+Republish
+B. Redesign Existing Website
+Paste URL
+Scrape + regenerate
+Backend Flow (Redesign)
 URL
  → Scraper
  → Content Extraction
  → New Layout
- → Regenerated Website
-```
-
-### Output
-
-✅ Users come back
-✅ Clear value feature
-
----
-
-## **PHASE 6 — Free Tier + Abuse Control (Week 6)**
-
-🎯 *Free tier with strict abuse control*
-
-![Image](https://global-uploads.webflow.com/5f16d69f1760cdba99c3ce6e/606b27810f8ec65f779c429f_QEd76i9ge8e8nzb6BbnX_IrLqBQ9ZLDdDAHl80RfDCcQO-mb_K19JbvrQGu6epTKEqJJytdPSW-cW-Bl2v1fwL-fLf5edH_Ohn0EWts305ik4gYpQeLFOmal_RGP1NkOj7s6w3EZ.png)
-
-![Image](https://uploads-ssl.webflow.com/6476f3498d3d0b9607200b4f/647703852726bdfef5ce7e8d_upm.jpg)
-
-![Image](https://cdn.dribbble.com/userupload/14625706/file/original-a859ed5788bee7b0bfb6d08a90582c87.png?format=webp\&resize=400x300\&vertical=center)
-
-### What You Build
-
-* Strict usage limits
-* Abuse control mechanisms
-* Monitoring and logging
-
-### Features
-
-* Daily/monthly usage caps
-* IP-based rate limiting
-* Abuse detection (spam prevention)
-* User feedback and reporting
-
-### Tech
-
-* Rate limits
-* Logging & monitoring
-* Abuse detection algorithms
-
-### Output
-
-✅ Secure free MVP
-✅ Abuse controlled
-
----
-
-## **PHASE 7 — Supabase Integration (Week 7)**
-
-🎯 *Integrate Supabase across all phases*
-
-![Image](https://supabase.com/docs/img/supabase-logo-wordmark--dark.png)
-
-![Image](https://images.contentstack.io/v3/assets/blt23180bf2502c7444/blt7a8bd01e775813a3/5f3d05be6e9660261c55bada/Static_Website_-_Detailed_Architecture_.jpeg?disposition=download)
-
-![Image](https://miro.medium.com/v2/resize%3Afit%3A1200/1%2A2SQ_RsYLY-zO3JuB_p_SHA.gif)
-
-### What You Build
-
-* Supabase database schema
-* Tables for users, websites, leads
-* API integrations for all phases
-
-### Features
-
-* User authentication
-* Website data storage
-* Analytics and logging
-* Real-time updates
-
-### Backend Flow
-
-```
-All Phases
- → Supabase Client
- → Database Operations
- → Data Persistence
-```
-
-### Python Additions
-
-* supabase_service.py
-* database_models.py
-
-### Output
-
-✅ Fully integrated Supabase
-✅ Data persistence across phases
-
----
-
-## **PHASE 8 — Authentication System (Week 8)**
-
-🎯 *Secure user authentication and authorization*
-
-![Image](https://supabase.com/docs/img/supabase-logo-wordmark--dark.png)
-
-![Image](https://images.contentstack.io/v3/assets/blt23180bf2502c7444/blt7a8bd01e775813a3/5f3d05be6e9660261c55bada/Static_Website_-_Detailed_Architecture_.jpeg?disposition=download)
-
-![Image](https://miro.medium.com/v2/resize%3Afit%3A1200/1%2A2SQ_RsYLY-zO3JuB_p_SHA.gif)
-
-### What You Build
-
-* Supabase Auth setup
-* Login/Signup forms in frontend
-* Auth middleware in backend
-* Security rules and policies
-
-### Features
-
-* User registration and login
-* Password reset
-* Session management
-* Role-based access control
-
-### Backend Flow
-
-```
-User Request
- → Auth Middleware
- → Supabase Auth
- → Secure Access
-```
-
-### Frontend Additions
-
-* Auth components (Login, Signup)
-* Protected routes
-
-### Backend Additions
-
-* auth_middleware.py
-* security_policies.py
-
-### Output
-
-✅ Secure authentication system
-✅ User accounts and sessions
-
----
-
-# 🧩 FULL MVP STACK (FINAL)
-
-### Frontend
-
-* Next.js
-* Tailwind
-* Mobile-first UI
-
-### Backend (Python)
-
-* FastAPI
-* Celery + Redis
-* Supabase
-* Whisper
-* LLM APIs
-
-### Hosting
-
-* Cloudflare Pages
-* Cloudflare R2
-
----
-
-# 📁 FINAL PROJECT STRUCTURE (MVP)
-
-```
-root/
-├── frontend/
-│   └── nextjs-app/
-├── backend/
-│   ├── app/
-│   │   ├── api/
-│   │   ├── ai/
-│   │   ├── website/
-│   │   ├── services/
-│   │   └── workers/
-│   └── Dockerfile
-├── infra/
-│   └── deploy/
-└── README.md
-```
+ → Draft → Publish
+Supabase Usage
+website_versions table
+Version history
+Rollback support
+Cloudflare Usage
+Re-deploy on publish
+Same domain retained
+Outcome
+✅ Users return
+✅ Clear paid feature
+PHASE 7 — Credits, Free Tier & Abuse Control (Week 7)
+🎯 Protect costs
+What You Build
+Credit-based usage
+Free tier limits
+Abuse detection
+Credit Rules
+Website generation = X credits
+Voice = X credits
+Redesign = X credits
+Supabase Usage
+credits table
+Usage logs
+RLS enforcement
+Cloudflare Usage
+Rate limiting
+Bot protection
+Firewall rules
+Outcome
+✅ Cost predictable
+✅ Free tier safe
+PHASE 8 — Dashboard (Control Room) (Week 8)
+🎯 Trust & control
+What You Build
+Dashboard overview
+My Websites
+Credits & usage
+Domain & publishing
+Website settings
+Dashboard Sections
+Home
+Create Website
+Edit Website
+Domain Settings
+Billing & Credits
+Help & Support
+Supabase Usage
+Source of truth for all dashboard data
+Realtime updates (optional later)
+Cloudflare Usage
+Domain status
+SSL status display
+Outcome
+✅ Professional product
+✅ User trust
+✅ Long-term retention
+PHASE 9 — Custom Domains + Payments (Week 9)
+🎯 Revenue unlock
+What You Build
+Custom domain linking
+Paid plans
+Razorpay integration
+Backend Flow
+User Domain
+ → DNS Instructions
+ → Cloudflare Verification
+ → SSL Auto
+Supabase Usage
+domains table
+payments table
+Plan enforcement
+Cloudflare Usage
+DNS
+SSL
+Domain routing
+Outcome
+✅ Monetization live
+✅ Serious businesses onboard

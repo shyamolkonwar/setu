@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import LanguageToggle from './LanguageToggle';
 
 interface HeaderProps {
@@ -11,10 +12,10 @@ export default function Header({ language, setLanguage }: HeaderProps) {
     return (
         <header className="site-header">
             <div className="header-container">
-                <div className="header-logo">
+                <Link href="/" className="header-logo">
                     <span className="logo-icon">◈</span>
                     <span className="logo-text">Setu</span>
-                </div>
+                </Link>
 
                 <LanguageToggle language={language} setLanguage={setLanguage} />
             </div>

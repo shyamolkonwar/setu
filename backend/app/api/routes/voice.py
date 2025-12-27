@@ -5,7 +5,7 @@ Handles voice input transcription and voice-to-website generation.
 
 import os
 from datetime import datetime
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends
 from pydantic import BaseModel
 from typing import Optional
 
@@ -19,6 +19,8 @@ from app.ai import (
 from app.website import build_website
 from app.core.config import get_settings
 from app.api.routes.generate import save_website
+from app.core.rate_limit import check_rate_limit, upstash_rate_limiter
+from app.core.auth_middleware import require_auth, AuthUser
 
 router = APIRouter()
 
@@ -206,7 +208,8 @@ class AsyncVoiceGenerateResponse(BaseModel):
 @router.post("/voice/generate/async", response_model=AsyncVoiceGenerateResponse)
 async def voice_to_website_async(
     audio: UploadFile = File(...),
-    language: str = Form(default="auto")
+    language: str = Form(default="auto"),
+    user: AuthUser = Depends(require_auth)
 ):
     """
     Generate website from voice input asynchronously.
@@ -216,6 +219,22 @@ async def voice_to_website_async(
     """
     import base64
     from app.workers.tasks import voice_to_website_task
+    
+    # Check rate limit before processing
+    is_allowed, message, remaining = check_rate_limit(user.user_id, "voice")
+    if not is_allowed:
+        upstash_rate_limiter.track_abuse_signal(user.user_id, "limit_violations")
+        raise HTTPException(
+            status_code=429,
+            detail=message
+        )
+    
+    # Check if user is blocked
+    if upstash_rate_limiter.is_user_blocked(user.user_id):
+        raise HTTPException(
+            status_code=429,
+            detail="Too many violations. Please try again later."
+        )
     
     # Validate file type
     content_type = audio.content_type or ""
@@ -249,6 +268,6 @@ async def voice_to_website_async(
     
     return AsyncVoiceGenerateResponse(
         task_id=task.id,
-        message="Voice-to-website generation started. Poll /api/tasks/{task_id} for status."
+        message=f"Voice-to-website generation started. {remaining} voice generations remaining this hour."
     )
 

@@ -7,7 +7,7 @@ from .deploy import (
     get_site_by_subdomain,
     PublishedSite
 )
-from .supabase import supabase_service
+from .supabase import supabase_service, CREDIT_COSTS
 from .rate_limiter import rate_limiter
 from .scraper import (
     scrape_website,
@@ -15,6 +15,8 @@ from .scraper import (
     ScrapedContent,
     ScrapeError
 )
+from .cloudflare_service import cloudflare_service, CloudflareService, DeploymentResult
+from .r2_service import r2_service, R2Service
 
 __all__ = [
     "publish_website",
@@ -24,10 +26,15 @@ __all__ = [
     "get_site_by_subdomain",
     "PublishedSite",
     "supabase_service",
+    "CREDIT_COSTS",
     "rate_limiter",
     "scrape_website",
     "validate_url",
     "ScrapedContent",
-    "ScrapeError"
+    "ScrapeError",
+    "cloudflare_service",
+    "CloudflareService",
+    "DeploymentResult",
+    "r2_service",
+    "R2Service",
 ]
-

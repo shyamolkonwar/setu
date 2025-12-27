@@ -7,24 +7,38 @@ export async function POST(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        // Get the website ID from URL params
         const { id } = await params;
 
-        const response = await fetch(`${BACKEND_URL}/api/republish/${id}`, {
+        // Get the authorization header from the incoming request
+        const authHeader = request.headers.get('Authorization');
+
+        // Build headers for backend request
+        const headers: HeadersInit = {
+            'Content-Type': 'application/json',
+        };
+
+        // Forward the auth header if present
+        if (authHeader) {
+            headers['Authorization'] = authHeader;
+        }
+
+        // Make request to backend
+        const backendResponse = await fetch(`${BACKEND_URL}/api/republish/${id}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
+            headers: headers,
         });
 
-        const data = await response.json();
+        // Get the response data
+        const data = await backendResponse.json();
 
-        if (response.ok) {
-            return NextResponse.json(data, { status: 200 });
-        } else {
-            return NextResponse.json(data, { status: response.status });
-        }
+        // Return the response with the same status code
+        return NextResponse.json(data, { status: backendResponse.status });
+
     } catch (error) {
-        console.error('Republish error:', error);
+        console.error('Republish API error:', error);
         return NextResponse.json(
-            { error: 'Failed to republish website' },
+            { error: 'Failed to republish website', detail: String(error) },
             { status: 500 }
         );
     }
