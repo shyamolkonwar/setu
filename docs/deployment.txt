@@ -1,0 +1,288 @@
+
+# 🚀 Hybrid Deployment Guide
+
+**Vercel Frontend → Local Mac Backend**
+
+---
+
+## 0️⃣ What You Are Building (Mental Model)
+
+Your frontend is **public on the internet**.
+Your backend is **private on your Mac** but safely exposed via Cloudflare.
+
+Flow:
+
+```
+Browser
+ → https://www.laxizen.fun (Vercel)
+ → https://api-dev.laxizen.fun (Cloudflare Tunnel)
+ → http://localhost:8000 (Your Mac)
+```
+
+Your Mac is **never directly exposed**.
+
+---
+
+## 1️⃣ Prerequisites (Do NOT Skip)
+
+Make sure all of these are true:
+
+* Frontend is deployed on **Vercel**
+* Domain `www.laxizen.fun` points to Vercel
+* Backend runs locally on:
+
+  ```
+  http://localhost:8000
+  ```
+* Supabase project is live
+* Cloudflare manages DNS for `laxizen.fun`
+
+---
+
+## 2️⃣ Install Cloudflare Tunnel on Mac
+
+Cloudflare Tunnel is what makes this possible.
+
+### Install
+
+```bash
+brew install cloudflared
+```
+
+Verify:
+
+```bash
+cloudflared --version
+```
+
+---
+
+## 3️⃣ Authenticate Cloudflare Tunnel
+
+This links your Mac to your Cloudflare account.
+
+```bash
+cloudflared tunnel login
+```
+
+* Browser opens
+* Log in to Cloudflare
+* Select **laxizen.fun**
+* Approve
+
+After this, your Mac is trusted.
+
+---
+
+## 4️⃣ Create a Tunnel (One-Time)
+
+```bash
+cloudflared tunnel create laxizen-backend
+```
+
+You will get:
+
+* A **Tunnel ID**
+* A credentials file (saved automatically)
+
+Keep this tunnel forever.
+
+---
+
+## 5️⃣ Configure Tunnel to Point to Local Backend
+
+Create config directory:
+
+```bash
+mkdir -p ~/.cloudflared
+```
+
+Create config file:
+
+```bash
+nano ~/.cloudflared/config.yml
+```
+
+Paste this (adjust port if needed):
+
+```yaml
+tunnel: laxizen-backend
+credentials-file: /Users/YOUR_USERNAME/.cloudflared/<TUNNEL_ID>.json
+
+ingress:
+  - hostname: api-dev.laxizen.fun
+    service: http://localhost:8000
+  - service: http_status:404
+```
+
+Save and exit.
+
+---
+
+## 6️⃣ Add DNS Record Automatically
+
+Run:
+
+```bash
+cloudflared tunnel route dns laxizen-backend api-dev.laxizen.fun
+```
+
+What this does:
+
+* Creates DNS record in Cloudflare
+* No manual DNS needed
+* SSL handled automatically
+
+---
+
+## 7️⃣ Start Your Backend Locally
+
+In your backend project:
+
+```bash
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
+
+Confirm:
+
+* `http://localhost:8000/health` works (or any test route)
+
+---
+
+## 8️⃣ Start the Cloudflare Tunnel
+
+In a **new terminal**:
+
+```bash
+cloudflared tunnel run laxizen-backend
+```
+
+If everything is correct:
+
+* `https://api-dev.laxizen.fun` is now live
+* Requests go straight to your Mac
+
+---
+
+## 9️⃣ Configure Vercel Frontend to Use Local Backend
+
+Go to **Vercel Dashboard → Project → Settings → Environment Variables**
+
+Add:
+
+```
+NEXT_PUBLIC_API_BASE_URL=https://api-dev.laxizen.fun
+```
+
+Apply to:
+
+* Production
+* Preview
+* Development (optional)
+
+Then **redeploy** frontend.
+
+---
+
+## 🔟 End-to-End Test (Critical)
+
+### Test 1: API Reachability
+
+Open browser:
+
+```
+https://api-dev.laxizen.fun/docs
+```
+
+You should see:
+
+* FastAPI Swagger UI
+
+---
+
+### Test 2: Frontend → Backend
+
+* Open `https://www.laxizen.fun`
+* Log in with Google (Supabase)
+* Perform an action that calls backend
+* Check backend logs on your Mac
+
+If logs appear → ✅ working
+
+---
+
+## 1️⃣1️⃣ Authentication Flow (No Extra Work)
+
+Supabase works automatically:
+
+```
+Frontend → Supabase Auth
+Frontend → Backend (JWT in headers)
+Backend → Supabase (JWT verification)
+```
+
+Tunnel does not interfere with auth.
+
+---
+
+## 1️⃣2️⃣ Security Guarantees (Important)
+
+* Backend listens only on `localhost`
+* Cloudflare Tunnel terminates TLS
+* No open ports
+* No public IP exposure
+* All traffic authenticated
+
+This is **safe for early users**.
+
+---
+
+## 1️⃣3️⃣ Known Limitations (Expected)
+
+* Backend stops if your Mac sleeps
+* No horizontal scaling
+* Tunnel URL is dev-only
+* Not production-grade uptime
+
+This is **intentional** for MVP testing.
+
+---
+
+## 1️⃣4️⃣ When to Move Off Local Mac
+
+You should migrate backend when:
+
+* Users use it daily
+* You need 24/7 uptime
+* AI jobs increase
+* You add payments
+
+Migration is simple:
+
+* Deploy backend to Railway/Render
+* Replace tunnel URL with cloud URL
+* No frontend changes needed
+
+---
+
+## 1️⃣5️⃣ Final Sanity Checklist
+
+* [ ] `www.laxizen.fun` loads frontend
+* [ ] `api-dev.laxizen.fun/docs` loads backend
+* [ ] Backend logs requests
+* [ ] Supabase auth works
+* [ ] No CORS errors
+* [ ] SSL is green
+
+If all checked → **your hybrid MVP is live** 🎉
+
+---
+
+## 🧠 Founder Rule (Lock This In)
+
+> **Frontend should be boring and stable.
+> Backend should be easy to change.**
+
+This setup gives you exactly that.
+
+---
