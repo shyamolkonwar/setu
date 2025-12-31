@@ -4,18 +4,25 @@ import { useState, useEffect } from 'react';
 import { Check, Loader } from 'lucide-react';
 
 interface ThinkingStepsProps {
-    businessType?: string;
+    inputMode?: 'voice' | 'text';
 }
 
-export default function ThinkingSteps({ businessType = 'your business' }: ThinkingStepsProps) {
+export default function ThinkingSteps({ inputMode = 'text' }: ThinkingStepsProps) {
     const [completedSteps, setCompletedSteps] = useState<number>(0);
 
-    const steps = [
-        'Analyzing Voice Note...',
-        `Detecting Business Type (${businessType})...`,
-        'Writing SEO-friendly Content...',
-        'Designing Layout...'
-    ];
+    const steps = inputMode === 'voice'
+        ? [
+            'Analyzing Voice Input...',
+            'Detecting Business Type...',
+            'Writing SEO-friendly Content...',
+            'Designing Layout...'
+        ]
+        : [
+            'Analyzing Your Description...',
+            'Detecting Business Type...',
+            'Writing SEO-friendly Content...',
+            'Designing Layout...'
+        ];
 
     useEffect(() => {
         const timers: NodeJS.Timeout[] = [];

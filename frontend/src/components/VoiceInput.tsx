@@ -1,57 +1,54 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { Mic, Pause, Square, Play } from 'lucide-react';
 
 interface VoiceInputProps {
     language: 'en' | 'hi';
     onTranscription: (text: string) => void;
     disabled?: boolean;
+    autoGenerate?: boolean; // New prop: auto-trigger generation after transcription
 }
 
 const content = {
     en: {
-        tapToRecord: "Tap to record",
+        tapToRecord: "Tap to start recording",
         recording: "Recording...",
-        stop: "Stop",
+        paused: "Paused",
+        pause: "Pause",
+        resume: "Resume",
+        finish: "Finish",
         processing: "Converting speech...",
-        useThis: "Use this",
-        recordAgain: "Record again",
         permissionDenied: "Microphone access denied. Please enable it in your browser settings.",
         notSupported: "Voice recording is not supported in this browser.",
         recordingError: "Recording failed. Please try again.",
-        speakNow: "Speak now...",
-        playback: "Listen",
-        pause: "Pause"
+        speakNow: "Speak now..."
     },
     hi: {
-        tapToRecord: "Record करने के लिए tap करें",
+        tapToRecord: "Recording शुरू करें",
         recording: "Recording...",
-        stop: "रोकें",
+        paused: "रुका हुआ",
+        pause: "रोकें",
+        resume: "फिर से शुरू करें",
+        finish: "समाप्त करें",
         processing: "Speech convert हो रहा है...",
-        useThis: "इसे use करें",
-        recordAgain: "फिर से record करें",
         permissionDenied: "Microphone access denied है। Browser settings में enable करें।",
         notSupported: "इस browser में voice recording support नहीं है।",
         recordingError: "Recording fail हुई। फिर से try करें।",
-        speakNow: "अब बोलें...",
-        playback: "सुनें",
-        pause: "रुकें"
+        speakNow: "अब बोलें..."
     }
 };
 
-type RecordingState = 'idle' | 'recording' | 'review' | 'processing';
+type RecordingState = 'idle' | 'recording' | 'paused' | 'processing';
 
-export default function VoiceInput({ language, onTranscription, disabled = false }: VoiceInputProps) {
+export default function VoiceInput({ language, onTranscription, disabled = false, autoGenerate = false }: VoiceInputProps) {
     const [state, setState] = useState<RecordingState>('idle');
     const [error, setError] = useState<string>('');
     const [recordingTime, setRecordingTime] = useState(0);
-    const [audioUrl, setAudioUrl] = useState<string | null>(null);
-    const [isPlaying, setIsPlaying] = useState(false);
 
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const audioChunksRef = useRef<Blob[]>([]);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
-    const audioRef = useRef<HTMLAudioElement | null>(null);
     const audioBlobRef = useRef<Blob | null>(null);
 
     const t = content[language];
@@ -60,12 +57,11 @@ export default function VoiceInput({ language, onTranscription, disabled = false
     useEffect(() => {
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
-            if (audioUrl) URL.revokeObjectURL(audioUrl);
             if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
                 mediaRecorderRef.current.stop();
             }
         };
-    }, [audioUrl]);
+    }, []);
 
     const startRecording = async () => {
         setError('');
@@ -115,10 +111,8 @@ export default function VoiceInput({ language, onTranscription, disabled = false
                 });
                 audioBlobRef.current = audioBlob;
 
-                // Create URL for playback
-                const url = URL.createObjectURL(audioBlob);
-                setAudioUrl(url);
-                setState('review');
+                // Auto-submit when recording finishes
+                submitRecording();
             };
 
             mediaRecorder.onerror = () => {
@@ -145,7 +139,29 @@ export default function VoiceInput({ language, onTranscription, disabled = false
         }
     };
 
-    const stopRecording = () => {
+    const pauseRecording = () => {
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+            mediaRecorderRef.current.pause();
+            setState('paused');
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+            }
+        }
+    };
+
+    const resumeRecording = () => {
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'paused') {
+            mediaRecorderRef.current.resume();
+            setState('recording');
+            // Resume timer
+            timerRef.current = setInterval(() => {
+                setRecordingTime(prev => prev + 1);
+            }, 1000);
+        }
+    };
+
+    const finishRecording = () => {
         if (timerRef.current) {
             clearInterval(timerRef.current);
             timerRef.current = null;
@@ -154,36 +170,6 @@ export default function VoiceInput({ language, onTranscription, disabled = false
         if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
             mediaRecorderRef.current.stop();
         }
-    };
-
-    const playAudio = () => {
-        if (!audioUrl) return;
-
-        if (!audioRef.current) {
-            audioRef.current = new Audio(audioUrl);
-            audioRef.current.onended = () => setIsPlaying(false);
-        }
-
-        if (isPlaying) {
-            audioRef.current.pause();
-            setIsPlaying(false);
-        } else {
-            audioRef.current.play();
-            setIsPlaying(true);
-        }
-    };
-
-    const resetRecording = () => {
-        if (audioUrl) URL.revokeObjectURL(audioUrl);
-        if (audioRef.current) {
-            audioRef.current.pause();
-            audioRef.current = null;
-        }
-        setAudioUrl(null);
-        setIsPlaying(false);
-        setRecordingTime(0);
-        audioBlobRef.current = null;
-        setState('idle');
     };
 
     const submitRecording = async () => {
@@ -206,14 +192,17 @@ export default function VoiceInput({ language, onTranscription, disabled = false
 
             if (response.ok && data.normalized_text) {
                 onTranscription(data.normalized_text);
-                resetRecording();
+                // Reset state
+                setRecordingTime(0);
+                audioBlobRef.current = null;
+                setState('idle');
             } else {
                 setError(data.error || 'Transcription failed');
-                setState('review');
+                setState('idle');
             }
         } catch {
             setError('Failed to process recording');
-            setState('review');
+            setState('idle');
         }
     };
 
@@ -224,77 +213,59 @@ export default function VoiceInput({ language, onTranscription, disabled = false
     };
 
     return (
-        <div className="voice-input-container">
+        <div className="voice-input-enhanced">
             {error && <p className="voice-error">{error}</p>}
 
             {state === 'idle' && (
-                <button
-                    onClick={startRecording}
-                    disabled={disabled}
-                    className="record-button"
-                    aria-label={t.tapToRecord}
-                >
-                    <svg className="mic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
-                        <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                        <line x1="12" y1="19" x2="12" y2="23" />
-                        <line x1="8" y1="23" x2="16" y2="23" />
-                    </svg>
-                    <span className="record-label">{t.tapToRecord}</span>
-                </button>
-            )}
-
-            {state === 'recording' && (
-                <div className="recording-active">
-                    <div className="recording-indicator">
-                        <span className="pulse-ring"></span>
-                        <span className="pulse-ring delay-1"></span>
-                        <span className="pulse-ring delay-2"></span>
-                        <div className="recording-dot"></div>
-                    </div>
-                    <p className="speak-now">{t.speakNow}</p>
-                    <p className="recording-time">{formatTime(recordingTime)}</p>
-                    <button onClick={stopRecording} className="stop-button">
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                            <rect x="6" y="6" width="12" height="12" rx="2" />
-                        </svg>
-                        {t.stop}
+                <div className="voice-idle-state">
+                    <button
+                        onClick={startRecording}
+                        disabled={disabled}
+                        className="mic-button-large"
+                        aria-label={t.tapToRecord}
+                    >
+                        <Mic size={32} strokeWidth={2} color="white" />
                     </button>
+                    <p className="voice-hint">{t.tapToRecord}</p>
                 </div>
             )}
 
-            {state === 'review' && (
-                <div className="review-container">
-                    <div className="playback-controls">
-                        <button onClick={playAudio} className="playback-button">
-                            {isPlaying ? (
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <rect x="6" y="4" width="4" height="16" rx="1" />
-                                    <rect x="14" y="4" width="4" height="16" rx="1" />
-                                </svg>
-                            ) : (
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <polygon points="5,3 19,12 5,21" />
-                                </svg>
-                            )}
-                            {isPlaying ? t.pause : t.playback}
-                        </button>
-                        <span className="duration">{formatTime(recordingTime)}</span>
+            {(state === 'recording' || state === 'paused') && (
+                <div className="voice-recording-active">
+                    <div className="recording-visual">
+                        <div className={`recording-pulse ${state === 'recording' ? 'active' : 'paused'}`}>
+                            <div className="pulse-ring pulse-ring-1"></div>
+                            <div className="pulse-ring pulse-ring-2"></div>
+                            <div className="pulse-ring pulse-ring-3"></div>
+                            <div className="recording-dot"></div>
+                        </div>
+                        <p className="recording-status">{state === 'recording' ? t.recording : t.paused}</p>
+                        <p className="recording-timer">{formatTime(recordingTime)}</p>
                     </div>
-                    <div className="review-actions">
-                        <button onClick={resetRecording} className="btn-secondary">
-                            {t.recordAgain}
-                        </button>
-                        <button onClick={submitRecording} className="btn-primary">
-                            {t.useThis}
+
+                    <div className="recording-controls">
+                        {state === 'recording' ? (
+                            <button onClick={pauseRecording} className="control-btn pause-btn">
+                                <Pause size={20} strokeWidth={2} />
+                                <span>{t.pause}</span>
+                            </button>
+                        ) : (
+                            <button onClick={resumeRecording} className="control-btn resume-btn">
+                                <Play size={20} strokeWidth={2} />
+                                <span>{t.resume}</span>
+                            </button>
+                        )}
+                        <button onClick={finishRecording} className="control-btn finish-btn">
+                            <Square size={20} strokeWidth={2} />
+                            <span>{t.finish}</span>
                         </button>
                     </div>
                 </div>
             )}
 
             {state === 'processing' && (
-                <div className="processing-container">
-                    <span className="spinner"></span>
+                <div className="voice-processing">
+                    <div className="spinner large"></div>
                     <p>{t.processing}</p>
                 </div>
             )}

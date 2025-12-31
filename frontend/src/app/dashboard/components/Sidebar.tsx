@@ -63,7 +63,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
                         color: 'white',
                         fontSize: '14px',
                         fontWeight: 'bold'
-                    }}>L</span>
+                    }}>◈</span>
                     Vocoweb
                 </span>
             </div>

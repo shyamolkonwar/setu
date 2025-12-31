@@ -12,7 +12,7 @@ const content = {
     headline: 'Your Business Online. Just Speak.',
     subheading: "Describe your business in Hindi or English, and our AI builds and launches your website in 30 seconds. No drag-and-drop. No headaches.",
     cta: 'Build My Site for Free',
-    secondary: 'Watch Demo Video',
+    secondary: 'Watch Demo',
     badge: 'Built for Local Businesses'
   },
   hi: {

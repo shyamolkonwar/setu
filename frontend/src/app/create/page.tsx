@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import ProgressHeader from '@/components/ProgressHeader';
 import FocusCard from '@/components/FocusCard';
-import MicButton from '@/components/MicButton';
 import ThinkingSteps from '@/components/ThinkingSteps';
 import VoiceInput from '@/components/VoiceInput';
 import AuthModal from '@/components/auth/AuthModal';
@@ -63,7 +62,6 @@ export default function CreatePage() {
     const [language, setLanguage] = useState<'en' | 'hi'>('en');
     const [inputMode, setInputMode] = useState<InputMode>('voice');
     const [businessDesc, setBusinessDesc] = useState('');
-    const [isRecording, setIsRecording] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
     const [error, setError] = useState('');
     const [showAuthModal, setShowAuthModal] = useState(false);
@@ -135,7 +133,7 @@ export default function CreatePage() {
                 <ProgressHeader currentStep="identity" />
                 <FocusCard>
                     {isGenerating ? (
-                        <ThinkingSteps businessType="Bakery" />
+                        <ThinkingSteps inputMode={inputMode} />
                     ) : (
                         <>
                             <div className="studio-header">
@@ -145,22 +143,23 @@ export default function CreatePage() {
 
                             {inputMode === 'voice' ? (
                                 <div className="voice-mode-container">
-                                    <div style={{ display: 'none' }}>
-                                        <VoiceInput
-                                            language={language}
-                                            onTranscription={handleVoiceTranscription}
-                                            disabled={isGenerating}
-                                        />
-                                    </div>
-                                    <MicButton
-                                        isRecording={isRecording}
-                                        onClick={() => {
-                                            setIsRecording(!isRecording);
-                                            // Voice input logic will be handled by VoiceInput component
+                                    <VoiceInput
+                                        language={language}
+                                        onTranscription={(text) => {
+                                            setBusinessDesc(text);
+                                            // Check auth before proceeding
+                                            if (!isAuthenticated) {
+                                                setShowAuthModal(true);
+                                                return;
+                                            }
+                                            // Auto-generate after transcription if authenticated
+                                            if (text.trim().length >= 20) {
+                                                handleGenerate();
+                                            }
                                         }}
                                         disabled={isGenerating}
+                                        autoGenerate={true}
                                     />
-                                    <p className="voice-hint">{t.voiceSubtitle}</p>
                                     <button
                                         className="type-manually-link"
                                         onClick={() => setInputMode('text')}

@@ -92,13 +92,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
                     {/* Main Content Area */}
                     <div
-                        className="ml-0 md:ml-64"
                         style={{
                             flex: 1,
                             display: 'flex',
                             flexDirection: 'column',
-                            minHeight: '100vh'
+                            minHeight: '100vh',
+                            marginLeft: 0
                         }}
+                        className="md:!ml-[256px]"
                     >
                         {/* Top Header */}
                         <header style={{

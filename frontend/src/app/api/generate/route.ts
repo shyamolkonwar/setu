@@ -36,6 +36,16 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({ description, language })
     });
 
+    // Check if response is JSON
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      console.error('Backend returned non-JSON response:', await response.text());
+      return NextResponse.json(
+        { error: 'Backend service is unavailable. Please try again later.' },
+        { status: 503 }
+      );
+    }
+
     const data = await response.json();
 
     if (response.ok) {

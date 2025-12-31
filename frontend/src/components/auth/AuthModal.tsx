@@ -44,8 +44,6 @@ const content = {
 export default function AuthModal({ language, onClose, title, subtitle, mode = 'default' }: AuthModalProps) {
     const t = content[language];
     const [isOpen, setIsOpen] = useState(false);
-    const [showEmailInput, setShowEmailInput] = useState(false);
-    const [email, setEmail] = useState('');
 
     // Animate in on mount
     useEffect(() => {
@@ -99,44 +97,6 @@ export default function AuthModal({ language, onClose, title, subtitle, mode = '
                 <div className="auth-modal-actions">
                     {/* Google Login - Primary */}
                     <GoogleLoginButton language={language} />
-
-                    {/* Divider */}
-                    <div className="auth-modal-divider">
-                        <div className="divider-line"></div>
-                        <span className="divider-text">{t.or}</span>
-                        <div className="divider-line"></div>
-                    </div>
-
-                    {/* Email Login */}
-                    {!showEmailInput ? (
-                        <button
-                            className="auth-email-btn"
-                            onClick={() => setShowEmailInput(true)}
-                        >
-                            <Mail size={20} strokeWidth={2} />
-                            <span>{t.continueWithEmail}</span>
-                        </button>
-                    ) : (
-                        <div className="auth-email-form">
-                            <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                placeholder={t.emailPlaceholder}
-                                className="auth-email-input"
-                                autoFocus
-                            />
-                            <button className="auth-continue-btn">
-                                {t.continue}
-                            </button>
-                        </div>
-                    )}
-                </div>
-
-                {/* Footer */}
-                <div className="auth-modal-footer">
-                    <span className="footer-text">{t.noAccount}</span>
-                    <button className="footer-link">{t.signUp}</button>
                 </div>
             </div>
         </div>
