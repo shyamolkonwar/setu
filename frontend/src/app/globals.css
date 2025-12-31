@@ -246,6 +246,16 @@ h6 {
   color: var(--color-primary);
 }
 
+/* Language toggle on scrolled header - inactive button should be dark */
+.site-header.on-dark.scrolled .lang-btn {
+  color: var(--color-text-primary);
+}
+
+/* Active button keeps white text on green background */
+.site-header.on-dark.scrolled .lang-btn.active {
+  color: var(--color-text-inverse);
+}
+
 .header-container {
   max-width: 1200px;
   margin: 0 auto;
